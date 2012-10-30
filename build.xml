@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="FullScreenCounter" default="jar" basedir=".">
     <property name="src" location="src"/>
+    <property name="resources" location="resources"/>
     <property name="bin" location="bin"/>
     <property name="lib" location="lib"/>
     <property name="dist" location="dist"/>
@@ -34,6 +35,7 @@
     <target name="jar" depends="compile" description="Build jar">
         <mkdir dir="${dist}"/>
         <jar jarfile="${jarfile}" basedir="${bin}" manifest="Manifest">
+			<fileset dir="${resources}" />
             <!-- Merge library jars into final jar file -->
             <zipgroupfileset refid="lib.jars"/>
         </jar>
