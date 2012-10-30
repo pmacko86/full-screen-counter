@@ -228,8 +228,8 @@ public class Main extends JFrame implements ActionListener {
 		
 		reachedAppearancePreviewLabel = new JLabel("50", SwingConstants.CENTER);
 		reachedAppearancePreviewLabel.setOpaque(true);
-		reachedAppearancePreviewLabel.setBackground(new Color(170, 170, 255));
-		reachedAppearancePreviewLabel.setForeground(new Color(0, 96, 0));
+		reachedAppearancePreviewLabel.setBackground(Color.WHITE);	// new Color(170, 170, 255)
+		reachedAppearancePreviewLabel.setForeground(new Color(75, 75, 255));	// new Color(0, 96, 0)
 		reachedAppearancePreviewLabel.setMinimumSize(new Dimension(75, 25));
 		reachedAppearancePreviewLabel.setPreferredSize(new Dimension(75, 25));
 		reachedAppearancePreviewLabel.setFont(reachedAppearancePreviewLabel.getFont().deriveFont(Font.BOLD));

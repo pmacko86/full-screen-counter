@@ -64,11 +64,20 @@ public class CounterFrame extends JFrame implements KeyListener {
 	/// The enhanced background color after the goal was reached
 	private Color goalBackground;
 	
+	/// The goal graphics
+	private Thermometer progressIndicator;
+	
+	/// The panel with the labels
+	JPanel labelPanel;
+	
 	/// The counter label
 	private JLabel label;
 	
-	/// The goal graphics
-	private Thermometer progressIndicator;
+	/// The counter label
+	private JLabel topLabel;
+	
+	/// The counter label
+	private JLabel bottomLabel;
 	
 	/// The current counter value
 	private int counter;
@@ -135,11 +144,34 @@ public class CounterFrame extends JFrame implements KeyListener {
 		progressIndicator.setBackground(Color.BLACK);
 		
 		
+		// The top and bottom labels
+		
+		topLabel = new JLabel(" ", SwingConstants.CENTER);
+		topLabel.setForeground(Color.WHITE);
+		topLabel.setBackground(Color.BLACK);
+		
+		bottomLabel = new JLabel(" ", SwingConstants.CENTER);
+		bottomLabel.setForeground(Color.WHITE);
+		bottomLabel.setBackground(Color.BLACK);
+
+		Font f = new Font(label.getFont().getName(),
+				Font.PLAIN, 1 * screenSize.height / 8);
+		topLabel.setFont(f);
+		bottomLabel.setFont(f);
+
+		
 		// Set the components
 		
+		labelPanel = new JPanel(new BorderLayout());
+		labelPanel.setBackground(getBackground());
+		labelPanel.setOpaque(false);
+		labelPanel.add(label, BorderLayout.CENTER);
+		labelPanel.add(topLabel, BorderLayout.NORTH);
+		labelPanel.add(bottomLabel, BorderLayout.SOUTH);
+		
 		getContentPane().setLayout(new BorderLayout());
-		getContentPane().add(label, BorderLayout.CENTER);
 		getContentPane().add(progressIndicator, BorderLayout.WEST);
+		getContentPane().add(labelPanel, BorderLayout.CENTER);
 		
 		pack(); 
 		
@@ -170,6 +202,29 @@ public class CounterFrame extends JFrame implements KeyListener {
 	
 	
 	/**
+	 * Set the colors
+	 * 
+	 * @param foreground the foreground color
+	 * @param background the background color
+	 */
+	private void setColors(Color foreground, Color background) {
+		
+		setBackground(background);
+		labelPanel.setBackground(background);
+		progressIndicator.setBackground(background);
+		
+		label.setBackground(background);
+		label.setForeground(foreground);
+		
+		topLabel.setBackground(background);
+		topLabel.setForeground(foreground);
+		
+		bottomLabel.setBackground(background);
+		bottomLabel.setForeground(foreground);
+	}
+	
+	
+	/**
 	 * Set the counter
 	 * 
 	 * @param c the new counter value
@@ -195,18 +250,12 @@ public class CounterFrame extends JFrame implements KeyListener {
 		label.setText(text);
 		
 		if (counter >= goalVaue) {
-			setBackground(goalBackground);
-			progressIndicator.setBackground(goalBackground);
-			
-			label.setBackground(goalBackground);
-			label.setForeground(goalForeground);
+			setColors(goalForeground, goalBackground);
+			bottomLabel.setText("Goal Reached!");
 		}
 		else {
-			setBackground(normalBackground);
-			progressIndicator.setBackground(normalBackground);
-			
-			label.setBackground(normalBackground);
-			label.setForeground(normalForeground);
+			setColors(normalForeground, normalBackground);
+			bottomLabel.setText(" ");
 		}
 		
 		repaint();
