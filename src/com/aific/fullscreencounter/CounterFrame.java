@@ -46,6 +46,24 @@ public class CounterFrame extends JFrame implements KeyListener {
 	/// Serial version UID
 	private static final long serialVersionUID = 1L;
 	
+	
+	/**
+	 * The graphical indicators
+	 */
+	public enum GraphicalIndicatorEnum {
+		
+		NONE { 
+			@Override
+			public String toString() { return "(none)"; }
+		},
+		
+		THERMOMETER { 
+			@Override
+			public String toString() { return "Thermometer"; }
+		}
+	}
+	
+	
 	/// The initial counter value
 	private int startValue;
 	
@@ -64,8 +82,11 @@ public class CounterFrame extends JFrame implements KeyListener {
 	/// The enhanced background color after the goal was reached
 	private Color goalBackground;
 	
-	/// The goal graphics
-	private Thermometer progressIndicator;
+	/// The "goal reached" announcement text
+	private String goalReachedText;
+	
+	/// The goal graphical progress indicator
+	private GraphicalIndicator graphicalIndicator;
 	
 	/// The panel with the labels
 	JPanel labelPanel;
@@ -93,10 +114,20 @@ public class CounterFrame extends JFrame implements KeyListener {
 	 * Create the instance of the counter window
 	 * 
 	 * @param title The window title
+	 * @param startValue The initial counter value
+	 * @param goalValue The goal counter value (the cutoff for the enhanced counter colors)
+	 * @param normalForeground The normal foreground color
+	 * @param normalBackground The normal background color
+	 * @param goalForeground The enhanced foreground color after the goal was reached
+	 * @param goalBackground The enhanced background color after the goal was reached
+	 * @param indicator The goal graphical progress indicator
+	 * @param goalReachedText The "goal reached" announcement text
 	 */
 	public CounterFrame(String title, int startValue, int goalValue,
 			Color normalForeground, Color normalBackground,
-			Color goalForeground, Color goalBackground) {
+			Color goalForeground, Color goalBackground,
+			GraphicalIndicatorEnum indicator,
+			String goalReachedText) {
 		
 		super(title);
 		
@@ -106,6 +137,9 @@ public class CounterFrame extends JFrame implements KeyListener {
 		this.normalBackground = normalBackground;
 		this.goalForeground = goalForeground;
 		this.goalBackground = goalBackground;
+		this.goalReachedText = goalReachedText;
+		
+		if (this.goalReachedText == null) this.goalReachedText = "";
 		
 		
 		// Initialize
@@ -138,10 +172,21 @@ public class CounterFrame extends JFrame implements KeyListener {
 		label.setFont(defaultFont);
 		
 		
-		// The progress indicator
+		// The graphical indicator
 		
-		progressIndicator = new Thermometer(startValue, goalValue, screenSize.height);
-		progressIndicator.setBackground(Color.BLACK);
+		switch (indicator) {
+		case THERMOMETER:
+			graphicalIndicator = new Thermometer(startValue, goalValue, screenSize.height);
+			break;
+		case NONE:
+		default:
+			graphicalIndicator = null;
+		}
+		
+		if (graphicalIndicator != null) {
+			graphicalIndicator.setBackground(Color.BLACK);
+			graphicalIndicator.setOpaque(true);
+		}
 		
 		
 		// The top and bottom labels
@@ -164,16 +209,16 @@ public class CounterFrame extends JFrame implements KeyListener {
 		
 		labelPanel = new JPanel(new BorderLayout());
 		labelPanel.setBackground(getBackground());
-		labelPanel.setOpaque(false);
+		labelPanel.setOpaque(true);
 		labelPanel.add(label, BorderLayout.CENTER);
 		labelPanel.add(topLabel, BorderLayout.NORTH);
 		labelPanel.add(bottomLabel, BorderLayout.SOUTH);
 		
 		getContentPane().setLayout(new BorderLayout());
-		getContentPane().add(progressIndicator, BorderLayout.WEST);
 		getContentPane().add(labelPanel, BorderLayout.CENTER);
+		if (graphicalIndicator != null) getContentPane().add(graphicalIndicator, BorderLayout.WEST);
 		
-		pack(); 
+		pack();
 		
 		
 		// Full screen
@@ -197,7 +242,7 @@ public class CounterFrame extends JFrame implements KeyListener {
 		setCounter(startValue);
 		setVisible(true);
 		
-		progressIndicator.repaint();
+		if (graphicalIndicator != null) graphicalIndicator.repaint();
 	}
 	
 	
@@ -211,7 +256,7 @@ public class CounterFrame extends JFrame implements KeyListener {
 		
 		setBackground(background);
 		labelPanel.setBackground(background);
-		progressIndicator.setBackground(background);
+		if (graphicalIndicator != null) graphicalIndicator.setBackground(background);
 		
 		label.setBackground(background);
 		label.setForeground(foreground);
@@ -232,7 +277,7 @@ public class CounterFrame extends JFrame implements KeyListener {
 	private void setCounter(int c) {
 		
 		counter = c;
-		progressIndicator.setValue(c);
+		if (graphicalIndicator != null) graphicalIndicator.setValue(c);
 		
 		String text = counter >= 0 ? "" + counter : "";
 		
@@ -251,7 +296,7 @@ public class CounterFrame extends JFrame implements KeyListener {
 		
 		if (counter >= goalVaue) {
 			setColors(goalForeground, goalBackground);
-			bottomLabel.setText("Goal Reached!");
+			bottomLabel.setText("".equals(goalReachedText) ? " " : goalReachedText);
 		}
 		else {
 			setColors(normalForeground, normalBackground);
@@ -280,6 +325,24 @@ public class CounterFrame extends JFrame implements KeyListener {
 		
 		if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE && counter > 0) {
 			setCounter(counter - 1);
+		}
+		
+		// Escape - exit
+		
+		if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+			
+			GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+			gd.setFullScreenWindow(null);
+			this.setBounds(0, 0, screenSize.width, screenSize.height);
+			
+			if (JOptionPane.showConfirmDialog(this, "Are you sure to exit the counter?",
+					getTitle(), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null) == JOptionPane.YES_OPTION) {
+				setVisible(false);
+				dispose();
+			}
+			else {
+				gd.setFullScreenWindow(this);
+			}
 		}
 	}
 

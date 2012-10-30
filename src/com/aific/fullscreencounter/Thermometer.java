@@ -42,7 +42,7 @@ import javax.swing.*;
  * 
  * @author Peter Macko
  */
-public class Thermometer extends JComponent {
+public class Thermometer extends GraphicalIndicator {
 
 	private static final long serialVersionUID = 1L;
 	
@@ -123,6 +123,7 @@ public class Thermometer extends JComponent {
 	 * 
 	 * @param value the new value
 	 */
+	@Override
 	public void setValue(int value) {
 		this.value = value;
 		invalidate();

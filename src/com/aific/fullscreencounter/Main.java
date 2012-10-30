@@ -37,6 +37,8 @@ import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
+import com.aific.fullscreencounter.CounterFrame.GraphicalIndicatorEnum;
+
 
 /**
  * The main class of the application that implements a full-screen counter
@@ -48,7 +50,16 @@ public class Main extends JFrame implements ActionListener {
 	/// Serial version UID
 	private static final long serialVersionUID = 1L;
 	
+	/// THe graphical indicators
+	private static final GraphicalIndicatorEnum[] INDICATORS = new GraphicalIndicatorEnum[] {
+		GraphicalIndicatorEnum.NONE,
+		GraphicalIndicatorEnum.THERMOMETER
+	};
+
+	
+	///
 	/// The components
+	///
 	
 	private JPanel panel;
 	private JLabel topLabel;
@@ -69,7 +80,13 @@ public class Main extends JFrame implements ActionListener {
 	private JLabel reachedAppearancePreviewLabel;
 	private JButton reachedAppearanceBackgroundButton;
 	private JButton reachedAppearanceForegroundButton;
+	
+	private JLabel graphicalIndicatorLabel;
+	private JComboBox graphicalIndicatorCombo;
+	private JLabel reachedTextLabel;
+	private JTextField reachedTextField;
 
+	private JLabel copyrightLabel;
 	private JButton startButton;
 	private JButton quitButton;
 	
@@ -246,9 +263,46 @@ public class Main extends JFrame implements ActionListener {
 		reachedAppearancePanel.add(reachedAppearanceBackgroundButton);
 
 		gridy++;
+		
+		
+		// Graphical indicator
+
+		graphicalIndicatorLabel = new JLabel("Graphical Indicator:   ");
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.gridx = 0;
+		c.gridy = gridy;
+		panel.add(graphicalIndicatorLabel, c);
+
+		graphicalIndicatorCombo = new JComboBox(INDICATORS);
+		graphicalIndicatorCombo.setSelectedItem(GraphicalIndicatorEnum.THERMOMETER);
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.gridx = 1;
+		c.gridy = gridy;
+		panel.add(graphicalIndicatorCombo, c);
+
+		gridy++;
+		
+		
+		// Goal reached text announcement
+		
+		reachedTextLabel = new JLabel("Goal Reached Text: ");
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.gridx = 0;
+		c.gridy = gridy;
+		panel.add(reachedTextLabel, c);
+
+		reachedTextField = new JTextField("Goal Reached!");
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.gridx = 1;
+		c.gridy = gridy;
+		panel.add(reachedTextField, c);
+
+		gridy++;
 
 
-		// Finish the main form
+		//
+		// Help
+		//
 
 		c.fill = GridBagConstraints.BOTH;
 		c.gridx = 0;
@@ -259,9 +313,56 @@ public class Main extends JFrame implements ActionListener {
 		c.gridwidth = 1;
 
 		gridy++;
+
+		JLabel usageLabelHeader = new JLabel("Usage:");
+		usageLabelHeader.setBorder(BorderFactory.createEmptyBorder(0, 0, 5, 0));
+		usageLabelHeader.setFont(usageLabelHeader.getFont().deriveFont(Font.BOLD));
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.gridx = 0;
+		c.gridy = gridy;
+		c.gridwidth = gridw;
+		c.weightx = 1;
+		c.weighty = 0;
+		panel.add(usageLabelHeader, c);
+		c.weightx = 0;
+		c.gridwidth = 1;
+
+		gridy++;
+
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.gridx = 0;
+		c.gridy = gridy;
+		c.gridwidth = gridw;
+		c.weightx = 1;
+		c.weighty = 0;
+		panel.add(new JLabel(
+				"<html><body><ul>"
+				+ "<li><i>Space</i> &ndash; Increment the counter</li>"
+				+ "<li><i>Backspace</i> &ndash; Decrement the counter</li>"
+				+ "<li><i>Escape</i> &ndash; Exit the program</li>"
+				+ "</body></ul></html>"), c);
+		c.weightx = 0;
+		c.gridwidth = 1;
+
+		gridy++;
+
+
+		//
+		// Finish the main form
+		//
+
+		/*c.fill = GridBagConstraints.BOTH;
+		c.gridx = 0;
+		c.gridy = gridy;
+		c.gridwidth = gridw;
+		c.weighty = 1;
+		panel.add(new JLabel(" "), c);
+		c.gridwidth = 1;
+
+		gridy++;*/
 		
 		
-		// Bottom Buttons
+		// Bottom buttons and the copyright label
 
 		JPanel buttonPanel = new JPanel();
 		getContentPane().add(buttonPanel, BorderLayout.SOUTH);
@@ -282,6 +383,13 @@ public class Main extends JFrame implements ActionListener {
 		buttonBox.add(Box.createHorizontalStrut(10));
 		buttonBox.add(quitButton);
 		
+		copyrightLabel = new JLabel("  Full Screen Counter, (c) Peter Macko, 2012");
+		Color lc = copyrightLabel.getForeground();
+		Color bg = getBackground();
+		copyrightLabel.setForeground(new Color((lc.getRed() + bg.getRed()) / 2,
+				(lc.getGreen() + bg.getGreen()) / 2, (lc.getBlue() + bg.getBlue()) / 2));
+		
+		buttonPanel.add(copyrightLabel, java.awt.BorderLayout.WEST);
 		buttonPanel.add(buttonBox, java.awt.BorderLayout.EAST);
 
 
@@ -291,6 +399,8 @@ public class Main extends JFrame implements ActionListener {
 		
 		Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
 		setLocation((d.width - getWidth()) / 2, (d.height - getHeight()) / 2);
+		
+		setMinimumSize(getSize());
 	}
 
 
@@ -391,7 +501,9 @@ public class Main extends JFrame implements ActionListener {
 					normalAppearancePreviewLabel.getForeground(),
 					normalAppearancePreviewLabel.getBackground(),
 					reachedAppearancePreviewLabel.getForeground(),
-					reachedAppearancePreviewLabel.getBackground());
+					reachedAppearancePreviewLabel.getBackground(),
+					(GraphicalIndicatorEnum) graphicalIndicatorCombo.getSelectedItem(),
+					reachedTextField.getText());
 			
 			dispose();
 			cf.start();
