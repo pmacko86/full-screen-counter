@@ -33,6 +33,7 @@ package com.aific.fullscreencounter;
 
 import java.awt.*;
 import java.awt.event.*;
+
 import javax.swing.*;
 
 
@@ -60,6 +61,11 @@ public class CounterFrame extends JFrame implements KeyListener {
 		THERMOMETER { 
 			@Override
 			public String toString() { return "Thermometer"; }
+		},
+		
+		STARS { 
+			@Override
+			public String toString() { return "Stars"; }
 		}
 	}
 	
@@ -76,17 +82,29 @@ public class CounterFrame extends JFrame implements KeyListener {
 	/// The normal background color
 	private Color normalBackground;
 	
+	/// The normal foreground alpha
+	private int normalAlpha;
+	
 	/// The enhanced foreground color after the goal was reached
 	private Color goalForeground;
 	
 	/// The enhanced background color after the goal was reached
 	private Color goalBackground;
 	
+	/// The enhanced foreground alpha after the goal was reached
+	private int goalAlpha;
+	
+	/// The font scale size
+	private double fontSizeScale;
+	
 	/// The "goal reached" announcement text
 	private String goalReachedText;
 	
 	/// The goal graphical progress indicator
 	private GraphicalIndicator graphicalIndicator;
+	
+	/// The goal graphical indicator that paints in the background
+	private BackgroundIndicator backgroundIndicator;
 	
 	/// The panel with the labels
 	JPanel labelPanel;
@@ -118,27 +136,36 @@ public class CounterFrame extends JFrame implements KeyListener {
 	 * @param goalValue The goal counter value (the cutoff for the enhanced counter colors)
 	 * @param normalForeground The normal foreground color
 	 * @param normalBackground The normal background color
+	 * @param normalAlpha The normal foreground alpha
 	 * @param goalForeground The enhanced foreground color after the goal was reached
 	 * @param goalBackground The enhanced background color after the goal was reached
+	 * @param goalAlpha The enhanced foreground alpha after the goal was reached
+	 * @param fontSizeScale the font size scale
 	 * @param indicator The goal graphical progress indicator
 	 * @param goalReachedText The "goal reached" announcement text
 	 */
 	public CounterFrame(String title, int startValue, int goalValue,
-			Color normalForeground, Color normalBackground,
-			Color goalForeground, Color goalBackground,
-			GraphicalIndicatorEnum indicator,
+			Color normalForeground, Color normalBackground, int normalAlpha,
+			Color goalForeground, Color goalBackground, int goalAlpha,
+			double fontSizeScale, GraphicalIndicatorEnum indicator,
 			String goalReachedText) {
 		
 		super(title);
 		
 		this.startValue = startValue;
 		this.goalVaue = goalValue;
-		this.normalForeground = normalForeground;
-		this.normalBackground = normalBackground;
-		this.goalForeground = goalForeground;
-		this.goalBackground = goalBackground;
-		this.goalReachedText = goalReachedText;
 		
+		this.normalAlpha = normalAlpha;
+		this.normalForeground = Utils.withAlpha(normalForeground, this.normalAlpha);
+		this.normalBackground = normalBackground;
+		
+		this.goalAlpha = goalAlpha;
+		this.goalForeground = Utils.withAlpha(goalForeground, this.goalAlpha);
+		this.goalBackground = goalBackground;
+		
+		this.fontSizeScale = fontSizeScale;
+		
+		this.goalReachedText = goalReachedText;
 		if (this.goalReachedText == null) this.goalReachedText = "";
 		
 		
@@ -166,27 +193,11 @@ public class CounterFrame extends JFrame implements KeyListener {
 		label = new JLabel("", SwingConstants.CENTER);
 		label.setForeground(Color.WHITE);
 		label.setBackground(Color.BLACK);
+		label.setOpaque(false);
 		
 		defaultFont = new Font(label.getFont().getName(),
-				Font.PLAIN, 3 * screenSize.height / 4);
+				Font.PLAIN, (int) (this.fontSizeScale * 3 * screenSize.height / 4));
 		label.setFont(defaultFont);
-		
-		
-		// The graphical indicator
-		
-		switch (indicator) {
-		case THERMOMETER:
-			graphicalIndicator = new Thermometer(startValue, goalValue, screenSize.height);
-			break;
-		case NONE:
-		default:
-			graphicalIndicator = null;
-		}
-		
-		if (graphicalIndicator != null) {
-			graphicalIndicator.setBackground(Color.BLACK);
-			graphicalIndicator.setOpaque(true);
-		}
 		
 		
 		// The top and bottom labels
@@ -194,6 +205,7 @@ public class CounterFrame extends JFrame implements KeyListener {
 		topLabel = new JLabel(" ", SwingConstants.CENTER);
 		topLabel.setForeground(Color.WHITE);
 		topLabel.setBackground(Color.BLACK);
+		topLabel.setOpaque(false);
 		
 		bottomLabel = new JLabel(" ", SwingConstants.CENTER);
 		bottomLabel.setForeground(Color.WHITE);
@@ -205,11 +217,64 @@ public class CounterFrame extends JFrame implements KeyListener {
 		bottomLabel.setFont(f);
 
 		
+		// Create the JPanel
+		
+		// TODO We should be able to have graphical and background indicators
+		// on at the same time, but now we can't because the background indicator
+		// must be hooked into the label panel - I'm not sure why it does not work
+		// hooked up directly to this JFrame.
+		
+		labelPanel = new JPanel(new BorderLayout()) {
+			
+			private static final long serialVersionUID = 1L;
+			
+
+			/**
+			 * Paint
+			 * 
+			 * @param g the graphics object
+			 */
+			@Override
+			public void paint(Graphics g) {
+				
+				if (backgroundIndicator != null) {
+					backgroundIndicator.paint((Graphics2D) g);
+				}
+				
+				super.paint(g);
+			}
+
+		};
+		
+		
+		// The graphical indicator
+		
+		graphicalIndicator = null;
+		backgroundIndicator = null;
+		
+		switch (indicator) {
+		case THERMOMETER:
+			graphicalIndicator = new Thermometer(startValue, goalValue, screenSize.height);
+			break;
+		case STARS:
+			backgroundIndicator = new StarIndicator(labelPanel, startValue, goalValue, screenSize);
+			break;
+		case NONE:
+			break;
+		default:
+			break;
+		}
+		
+		if (graphicalIndicator != null) {
+			graphicalIndicator.setBackground(Color.BLACK);
+			graphicalIndicator.setOpaque(true);
+		}
+
+		
 		// Set the components
 		
-		labelPanel = new JPanel(new BorderLayout());
 		labelPanel.setBackground(getBackground());
-		labelPanel.setOpaque(true);
+		labelPanel.setOpaque(false);
 		labelPanel.add(label, BorderLayout.CENTER);
 		labelPanel.add(topLabel, BorderLayout.NORTH);
 		labelPanel.add(bottomLabel, BorderLayout.SOUTH);
@@ -254,8 +319,14 @@ public class CounterFrame extends JFrame implements KeyListener {
 	 */
 	private void setColors(Color foreground, Color background) {
 		
-		setBackground(background);
-		labelPanel.setBackground(background);
+		if (backgroundIndicator == null) {
+			setBackground(background);
+			labelPanel.setBackground(background);
+		}
+		else {
+			backgroundIndicator.setBackground(background);
+		}
+		
 		if (graphicalIndicator != null) graphicalIndicator.setBackground(background);
 		
 		label.setBackground(background);
@@ -278,6 +349,7 @@ public class CounterFrame extends JFrame implements KeyListener {
 		
 		counter = c;
 		if (graphicalIndicator != null) graphicalIndicator.setValue(c);
+		if (backgroundIndicator != null) backgroundIndicator.setValue(c);
 		
 		String text = counter >= 0 ? "" + counter : "";
 		
@@ -305,7 +377,7 @@ public class CounterFrame extends JFrame implements KeyListener {
 		
 		repaint();
 	}
-
+	
 
 	/**
 	 * Handler for pressing a key

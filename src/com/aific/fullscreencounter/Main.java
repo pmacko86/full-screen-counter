@@ -53,7 +53,8 @@ public class Main extends JFrame implements ActionListener {
 	/// THe graphical indicators
 	private static final GraphicalIndicatorEnum[] INDICATORS = new GraphicalIndicatorEnum[] {
 		GraphicalIndicatorEnum.NONE,
-		GraphicalIndicatorEnum.THERMOMETER
+		GraphicalIndicatorEnum.THERMOMETER,
+		GraphicalIndicatorEnum.STARS
 	};
 
 	
@@ -245,8 +246,8 @@ public class Main extends JFrame implements ActionListener {
 		
 		reachedAppearancePreviewLabel = new JLabel("50", SwingConstants.CENTER);
 		reachedAppearancePreviewLabel.setOpaque(true);
-		reachedAppearancePreviewLabel.setBackground(Color.WHITE);	// new Color(170, 170, 255)
-		reachedAppearancePreviewLabel.setForeground(new Color(75, 75, 255));	// new Color(0, 96, 0)
+		reachedAppearancePreviewLabel.setBackground(new Color(24, 24, 24)); ///Color.BLACK);
+		reachedAppearancePreviewLabel.setForeground(new Color(75, 75, 255));
 		reachedAppearancePreviewLabel.setMinimumSize(new Dimension(75, 25));
 		reachedAppearancePreviewLabel.setPreferredSize(new Dimension(75, 25));
 		reachedAppearancePreviewLabel.setFont(reachedAppearancePreviewLabel.getFont().deriveFont(Font.BOLD));
@@ -274,7 +275,7 @@ public class Main extends JFrame implements ActionListener {
 		panel.add(graphicalIndicatorLabel, c);
 
 		graphicalIndicatorCombo = new JComboBox(INDICATORS);
-		graphicalIndicatorCombo.setSelectedItem(GraphicalIndicatorEnum.THERMOMETER);
+		graphicalIndicatorCombo.setSelectedItem(GraphicalIndicatorEnum.STARS);
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.gridx = 1;
 		c.gridy = gridy;
@@ -497,12 +498,18 @@ public class Main extends JFrame implements ActionListener {
 				return;
 			}
 			
+			GraphicalIndicatorEnum indicator =
+					(GraphicalIndicatorEnum) graphicalIndicatorCombo.getSelectedItem();
+			
 			CounterFrame cf = new CounterFrame("Full Screen Counter", startValue, goalValue,
 					normalAppearancePreviewLabel.getForeground(),
 					normalAppearancePreviewLabel.getBackground(),
+					indicator == GraphicalIndicatorEnum.STARS ? 178 : 255,
 					reachedAppearancePreviewLabel.getForeground(),
 					reachedAppearancePreviewLabel.getBackground(),
-					(GraphicalIndicatorEnum) graphicalIndicatorCombo.getSelectedItem(),
+					indicator == GraphicalIndicatorEnum.STARS ? 178 : 255,
+					indicator == GraphicalIndicatorEnum.STARS ? 0.75 : 1.0,
+					indicator,
 					reachedTextField.getText());
 			
 			dispose();
